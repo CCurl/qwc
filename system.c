@@ -60,7 +60,7 @@ char tib[128], fn[32];
 cell timer() { return (cell)clock(); }
 void zType(const char *str) { fputs(str, outputFp ? (FILE*)outputFp : stdout); }
 void emit(const char ch) { fputc(ch, outputFp ? (FILE*)outputFp : stdout); }
-char *bootFn(char *f) { sprintf(fn, "%scf-boot.fth", f); return fn; }
+char *bootFn(char *f) { sprintf(fn, "%sqwc-boot.fth", f); return fn; }
 
 cell fOpen(cell name, cell mode) { return (cell)fopen((char*)name, (char*)mode); }
 void fClose(cell fh) { fclose((FILE*)fh); }
@@ -77,7 +77,7 @@ void repl() {
 
 
 void boot(const char *fn) {
-	if (!fn) { fn = "boot.fth"; }
+	if (!fn) { fn = "qwc-boot.fth"; }
 	cell fp = fOpen((cell)fn, (cell)"rb");
 	if (!fp) { fp = fOpen((cell)bootFn(""), (cell)"rb"); }
 	if (!fp) { fp = fOpen((cell)bootFn(BIN_DIR), (cell)"rb"); }
@@ -88,7 +88,7 @@ void boot(const char *fn) {
 		outer(tib);
 	} else {
 		zType("WARNING: unable to open source file!\n");
-		zType("If no filename is provided, the default is 'boot.fth'\n");
+		zType("If no filename is provided, the default is 'qwc-boot.fth'\n");
 	}
 }
 

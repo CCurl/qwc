@@ -1,8 +1,8 @@
-# QWC: a minimal Forth
+# QWC: a very minimal Forth
 
 QWC is a minimal Forth system that can run stand-alone or be embedded into another program.
 
-QWC has 56 base primitives.<br/>
+QWC has 59 base primitives.<br/>
 QWC is implemented in 3 files: (qwc-vm.c, qwc-vm.h, system.c). <br/>
 The VM itself is under 200 lines of code.
 
@@ -20,7 +20,7 @@ In a QWC program, each instruction is a CELL (32- or 64-bits). <br/>
 
 **NOTE**: '(' skips words until the next ')' word.<br/>
 **NOTE**: '\\' skips words until the end of the line.<br/>
-**NOTE**: Setting state to 999 signals QWC to exit.<br/>
+**NOTE**: Setting state to 999 signals QWC to exit.
 
 ## INLINE words
 
@@ -32,7 +32,13 @@ When not INLINE, a call is made to the word instead.
 
 Words 't0' through 't9' are transient and are not added to the dictionary.<br/>
 They are case sensitive: 't0' is a transient word, 'T0' is not.<br/>
-They help with factoring code and and keep the dictionary uncluttered.<br/>
+They help with factoring code and and keep the dictionary uncluttered.
+
+## Built-in variables
+
+There are 3 built-in variables `x`, `y`, and `z`. There is also `+L` and `-L` that<br/>
+can be used to create 3 local variables under the user's control. You can use `+L` / `-L`<br/>
+at any time for any reason to create a new frame for new versions of the variables.
 
 ## QWC Startup Behavior
 
@@ -69,8 +75,8 @@ On startup, QWC does the following:
 |  15       | >r       | (n--)        | Push TOS onto the return stack. Discard TOS. |
 |  16       | r@       | (--n)        | Push R-TOS. |
 |  17       | r>       | (--n)        | Push R-TOS. Discard R-TOS. |
-|  18       | +L       | (--)         | Allocate 3 locals (x,y,z). |
-|  19       | -L       | (--)         | De-allocate last set of locals. |
+|  18       | +L       | (--)         | Create new versions of variables (x,y,z). |
+|  19       | -L       | (--)         | Restore the last set of variables. |
 |  20       | x!       | (n--)        | Set local variable X to n. |
 |  21       | y!       | (n--)        | Set local variable Y to n. |
 |  22       | z!       | (n--)        | Set local variable Z to n. |
@@ -99,15 +105,17 @@ On startup, QWC does the following:
 |  45       | key      | (--n)        | Push the next keypress. Wait if necessary. |
 |  46       | key?     | (--f)        | Push 1 if a keypress is available, else 0. |
 |  47       | emit     | (c--)        | Output char TOS. Discard TOS. |
-|  48       | fopen    | (nm md--fh)  | Open file NOS using mode TOS (h=0 if error). |
-|  49       | fclose   | (fh--)       | Close file TOS. Discard TOS. |
-|  50       | fread    | (a sz fh--n) | Read NOS chars from file TOS to a. |
-|  51       | fwrite   | (a sz fh--n) | Write NOS chars from file TOS from a. |
+|  48       | fopen    | (nm md--fh)  | Open file `nm` using mode `md` (fh=0 if error). |
+|  49       | fclose   | (fh--)       | Close file `fh`. Discard TOS. |
+|  50       | fread    | (a sz fh--n) | Read `sz` chars from file `fh` to `a`. |
+|  51       | fwrite   | (a sz fh--n) | Write `sz` chars to file `fh` from `a`. |
 |  52       | ms       | (n--)        | Wait/sleep for TOS milliseconds |
 |  53       | timer    | (--n)        | Push the current system time. |
 |  54       | add-word | (--)         | Add the next word to the dictionary. |
 |  55       | outer    | (a--)        | Run the outer interpreter on TOS. Discard TOS. |
-|  56       | system   | (a--)        | Execute system(TOS). Discard TOS. |
+|  56       | cmove    | (f t n--)    | Copy `n` bytes from `f` to `t`. |
+|  57       | s-len    | (str--n)     | Determine the length `n` of string `str`. |
+|  58       | system   | (str--)      | Execute system(str). Discard TOS. |
 
 ## Other built-in words
 
