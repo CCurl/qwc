@@ -3,6 +3,7 @@
 : ll z" ls -l" system ;
 : lg z" lazygit" system ;
 
+( dumping and printing )
 : .nwb ( n width base-- )
     base @ >r  base !  >r <# r> 1- for # next #s #> ztype  r> base ! ;
 : .hex     ( n-- )  #2 $10 .nwb ;
@@ -29,13 +30,13 @@
 : bm-all ( -- ) 250 mil bm-while bb 30 bm-fib ;
 
 ( simple fixed point )
-: f. ( n-- )    100 /mod (.) '.' emit abs 2 10 .nwb ;
-: f* ( a b--c ) * 100 / ;
-: f/ ( a b--c ) swap 100 * swap / ;
+: f. ( n-- )    1000 /mod (.) '.' emit abs 3 10 .nwb ;
+: f* ( a b--c ) * 1000 / ;
+: f/ ( a b--c ) swap 1000 * swap / ;
 : f+ ( a b--c ) + ; inline
 : f- ( a b--c ) - ; inline
 
-\ A stack
+\ A example stack
 16 cells var tstk      \ the stack start
 vhere cell - const t9  \ t9 is the stack end
 val tsp@   (val) t1    \ the stack pointer

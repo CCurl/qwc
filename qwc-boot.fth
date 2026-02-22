@@ -20,7 +20,7 @@
 : (jmpnz)  ( --n )  4 ; inline
 : (njmpz)  ( --n )  5 ; inline
 : (njmpnz) ( --n )  6 ; inline
-: (ztype)  ( --n ) 43 ; inline
+: (ztype)  ( --n ) 46 ; inline
 
 : if   (jmpz)   , here 0 , ; immediate
 : -if  (njmpz)  , here 0 , ; immediate
@@ -51,22 +51,22 @@ vars (vh) !
 : allot ( n-- ) (vh) +! ;
 : var   ( n-- ) vhere const allot ;
 
-( A stack for 3 locals - x,y,z )
+( 3 variables that can be used as locals - x,y,z )
 : +L1 ( x -- )    +L x! ;
 : +L2 ( x y-- )   +L y! x! ;
 : +L3 ( x y z-- ) +L z! y! x! ;
 
-: x++ ( -- )  x@ 1+ x! ;   : x@+  ( --n ) x@ x++ ;
-: x-- ( -- )  x@ 1- x! ;   : x@-  ( --n ) x@ x-- ;
-: c@x ( --b ) x@ c@ ;      : c@x+ ( --b ) x@+ c@ ;  : c@x- ( --b ) x@- c@ ;
-: c!x ( b-- ) x@ c! ;      : c!x+ ( b-- ) x@+ c! ;  : c!x- ( b-- ) x@- c! ;
+: x++ ( -- )  x@+ drop ;  : x--  ( -- )  x@ 1- x! ;  : x@-  ( --n ) x@ x-- ;
+: c@x ( --b ) x@ c@ ;     : c@x+ ( --b ) x@+ c@ ;    : c@x- ( --b ) x@- c@ ;
+: c!x ( b-- ) x@ c! ;     : c!x+ ( b-- ) x@+ c! ;    : c!x- ( b-- ) x@- c! ;
 
-: y++ ( -- )  y@ 1+ y! ;   : y@+  ( --n ) y@ y++ ;
-: y-- ( -- )  y@ 1- y! ;   : y@-  ( --n ) y@ y-- ;
-: c@y ( --b ) y@ c@ ;      : c@y+ ( --b ) y@+ c@ ;  : c@y- ( --b ) y@- c@ ;
-: c!y ( b-- ) y@ c! ;      : c!y+ ( b-- ) y@+ c! ;  : c!y- ( b-- ) y@- c! ;
+: y++ ( -- )  y@+ drop ;  : y--  ( -- )  y@ 1- y! ;  : y@-  ( --n ) y@ y-- ;
+: c@y ( --b ) y@ c@ ;     : c@y+ ( --b ) y@+ c@ ;    : c@y- ( --b ) y@- c@ ;
+: c!y ( b-- ) y@ c! ;     : c!y+ ( b-- ) y@+ c! ;    : c!y- ( b-- ) y@- c! ;
 
-: z++ ( -- )  z@ 1+ z! ;   : z@+  ( --n ) z@ z++ ;
+: z++ ( -- )  z@+ drop ;  : z--  ( -- )  z@ 1- z! ;  : z@-  ( --n ) z@ z-- ;
+: c@z ( --b ) z@ c@ ;     : c@z+ ( --b ) z@+ c@ ;    : c@z- ( --b ) z@- c@ ;
+: c!z ( b-- ) z@ c! ;     : c!z+ ( b-- ) z@+ c! ;    : c!z- ( b-- ) z@- c! ;
 
 ( Strings )
 : compiling? ( --n ) state @ 1 = ;

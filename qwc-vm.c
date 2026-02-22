@@ -1,4 +1,4 @@
-// A Tachyon inspired system, MIT license, (c) 2025 Chris Curl
+// A Tachyon inspired system, MIT license, (c) 2026 Chris Curl
 #include "qwc-vm.h"
 
 #define X1(op, name, theCode) op,
@@ -32,6 +32,9 @@
 	X(XFET,   "x@",       push(tstk[tsp]); ) \
 	X(YFET,   "y@",       push(tstk[tsp+1]); ) \
 	X(ZFET,   "z@",       push(tstk[tsp+2]); ) \
+	X(XFETI,  "x@+",      push(tstk[tsp]++); ) \
+	X(YFETI,  "y@+",      push(tstk[tsp+1]++); ) \
+	X(ZFETI,  "z@+",      push(tstk[tsp+2]++); ) \
 	X(MULT,   "*",        t = pop(); TOS *= t; ) \
 	X(ADD,    "+",        t = pop(); TOS += t; ) \
 	X(SUB,    "-",        t = pop(); TOS -= t; ) \
@@ -45,7 +48,7 @@
 	X(PLSTO,  "+!",       t = pop(); n = pop(); *(cell *)t += n; ) \
 	X(FOR,    "for",      lsp += 3; L0 = 0; L1 = pop(); L2 = pc; ) \
 	X(I,      "i",        push(L0); ) \
-	X(NEXT,   "next",     if (++L0 < L1) { pc = (ucell)L2; } else { lsp = (2<lsp) ? lsp-3 : 0; } ) \
+	X(NEXT,   "next",     if (++L0 < L1) { pc=(ucell)L2; } else { lsp = (2<lsp) ? lsp-3 : 0; } ) \
 	X(AND ,   "and",      t = pop(); TOS &= t; ) \
 	X(OR,     "or",       t = pop(); TOS |= t; ) \
 	X(XOR,    "xor",      t = pop(); TOS ^= t; ) \
@@ -127,10 +130,7 @@ DE_T *addToDict(const char *w) {
 	while (sz & 0x03) { ++sz; }
 	last -= sz;
 	DE_T *dp = (DE_T*)last;
-	dp->xt = (ucell)here;
-	dp->sz = sz;
-	dp->fl = 0;
-	dp->ln = ln;
+	*dp = (DE_T){ (ucell)here, sz, 0, ln };
 	strcpy(dp->nm, w);
 	return dp;
 }

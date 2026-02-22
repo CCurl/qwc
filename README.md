@@ -2,7 +2,7 @@
 
 QWC is a minimal Forth system that can run stand-alone or be embedded into another program.
 
-QWC has 59 base primitives.<br/>
+QWC has 62 base primitives.<br/>
 QWC is implemented in 3 files: (qwc-vm.c, qwc-vm.h, system.c). <br/>
 The VM itself is under 200 lines of code.
 
@@ -83,39 +83,42 @@ On startup, QWC does the following:
 |  23       | x@       | (--n)        | Push local variable X. |
 |  24       | y@       | (--n)        | Push local variable Y. |
 |  25       | z@       | (--n)        | Push local variable Z. |
-|  26       | *        | (a b--c)     | TOS = NOS*TOS. Discard NOS. |
-|  27       | +        | (a b--c)     | TOS = NOS+TOS. Discard NOS. |
-|  28       | -        | (a b--c)     | TOS = NOS-TOS. Discard NOS. |
-|  29       | /mod     | (a b--r q)   | TOS = NOS/TOS. NOS = NOS modulo TOS. |
-|  30       | 1+       | (a--b)       | TOS = TOS+1. |
-|  31       | 1-       | (a--b)       | TOS = TOS-1. |
-|  32       | <        | (a b--f)     | If (NOS<TOS) then TOS = 1 else TOS = 0. Discard NOS. |
-|  33       | =        | (a b--f)     | If (NOS=TOS) then TOS = 1 else TOS = 0. Discard NOS. |
-|  34       | >        | (a b--f)     | If (NOS<TOS) then TOS = 1 else TOS = 0. Discard NOS. |
-|  35       | 0=       | (n--f)       | If (TOS==1) then TOS = 1 else TOS = 0. |
-|  36       | +!       | (n a--)      | Add NOS to the cell at TOS. Discard TOS and NOS. |
-|  37       | for      | (C--)        | Start a FOR loop starting at 0. Upper limit is C. |
-|  38       | i        | (--I)        | Push current loop index. |
-|  39       | next     | (--)         | Increment I. If I < C then jump to loop start. |
-|  40       | and      | (a b--c)     | TOS = NOS and TOS. Discard NOS. |
-|  41       | or       | (a b--c)     | TOS = NOS or  TOS. Discard NOS. |
-|  42       | xor      | (a b--c)     | TOS = NOS xor TOS. Discard NOS. |
-|  43       | ztype    | (a--)        | Output null-terminated string TOS. Discard TOS. |
-|  44       | find     | (--a)        | Push the dictionary address of the next word. |
-|  45       | key      | (--n)        | Push the next keypress. Wait if necessary. |
-|  46       | key?     | (--f)        | Push 1 if a keypress is available, else 0. |
-|  47       | emit     | (c--)        | Output char TOS. Discard TOS. |
-|  48       | fopen    | (nm md--fh)  | Open file `nm` using mode `md` (fh=0 if error). |
-|  49       | fclose   | (fh--)       | Close file `fh`. Discard TOS. |
-|  50       | fread    | (a sz fh--n) | Read `sz` chars from file `fh` to `a`. |
-|  51       | fwrite   | (a sz fh--n) | Write `sz` chars to file `fh` from `a`. |
-|  52       | ms       | (n--)        | Wait/sleep for TOS milliseconds |
-|  53       | timer    | (--n)        | Push the current system time. |
-|  54       | add-word | (--)         | Add the next word to the dictionary. |
-|  55       | outer    | (a--)        | Run the outer interpreter on TOS. Discard TOS. |
-|  56       | cmove    | (f t n--)    | Copy `n` bytes from `f` to `t`. |
-|  57       | s-len    | (str--n)     | Determine the length `n` of string `str`. |
-|  58       | system   | (str--)      | Execute system(str). Discard TOS. |
+|  26       | x@+      | (--n)        | Push local variable X, then increment it. |
+|  27       | y@+      | (--n)        | Push local variable Y, then increment it. |
+|  28       | z@+      | (--n)        | Push local variable Z, then increment it. |
+|  29       | *        | (a b--c)     | TOS = NOS*TOS. Discard NOS. |
+|  30       | +        | (a b--c)     | TOS = NOS+TOS. Discard NOS. |
+|  31       | -        | (a b--c)     | TOS = NOS-TOS. Discard NOS. |
+|  32       | /mod     | (a b--r q)   | TOS = NOS/TOS. NOS = NOS modulo TOS. |
+|  33       | 1+       | (a--b)       | TOS = TOS+1. |
+|  34       | 1-       | (a--b)       | TOS = TOS-1. |
+|  35       | <        | (a b--f)     | If (NOS<TOS) then TOS = 1 else TOS = 0. Discard NOS. |
+|  36       | =        | (a b--f)     | If (NOS=TOS) then TOS = 1 else TOS = 0. Discard NOS. |
+|  37       | >        | (a b--f)     | If (NOS<TOS) then TOS = 1 else TOS = 0. Discard NOS. |
+|  38       | 0=       | (n--f)       | If (TOS==1) then TOS = 1 else TOS = 0. |
+|  39       | +!       | (n a--)      | Add NOS to the cell at TOS. Discard TOS and NOS. |
+|  40       | for      | (C--)        | Start a FOR loop starting at 0. Upper limit is C. |
+|  41       | i        | (--I)        | Push current loop index. |
+|  42       | next     | (--)         | Increment I. If I < C then jump to loop start. |
+|  43       | and      | (a b--c)     | TOS = NOS and TOS. Discard NOS. |
+|  44       | or       | (a b--c)     | TOS = NOS or  TOS. Discard NOS. |
+|  45       | xor      | (a b--c)     | TOS = NOS xor TOS. Discard NOS. |
+|  46       | ztype    | (a--)        | Output null-terminated string TOS. Discard TOS. |
+|  47       | find     | (--a)        | Push the dictionary address of the next word. |
+|  48       | key      | (--n)        | Push the next keypress. Wait if necessary. |
+|  49       | key?     | (--f)        | Push 1 if a keypress is available, else 0. |
+|  50       | emit     | (c--)        | Output char TOS. Discard TOS. |
+|  51       | fopen    | (nm md--fh)  | Open file `nm` using mode `md` (fh=0 if error). |
+|  52       | fclose   | (fh--)       | Close file `fh`. Discard TOS. |
+|  53       | fread    | (a sz fh--n) | Read `sz` chars from file `fh` to `a`. |
+|  54       | fwrite   | (a sz fh--n) | Write `sz` chars to file `fh` from `a`. |
+|  55       | ms       | (n--)        | Wait/sleep for TOS milliseconds |
+|  56       | timer    | (--n)        | Push the current system time. |
+|  57       | add-word | (--)         | Add the next word to the dictionary. |
+|  58       | outer    | (a--)        | Run the outer interpreter on TOS. Discard TOS. |
+|  59       | cmove    | (f t n--)    | Copy `n` bytes from `f` to `t`. |
+|  60       | s-len    | (str--n)     | Determine the length `n` of string `str`. |
+|  61       | system   | (str--)      | Execute system(str). Discard TOS. |
 
 ## Other built-in words
 

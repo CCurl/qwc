@@ -2,7 +2,7 @@
 
 #ifndef __QWC_H__
 
-#define VERSION         20260221
+#define VERSION         20260222
 #ifdef _MSC_VER
     #define _CRT_SECURE_NO_WARNINGS
     #define IS_WINDOWS 1
@@ -36,7 +36,6 @@
 #define byte             uint8_t
 #define MEM_SZ         0x1000000
 #define STK_SZ                63
-#define NAME_LEN              25
 #define IMMED               0x80
 #define INLINE              0x40
 #define btwi(n,l,h)   ((l<=n) && (n<=h))
@@ -47,7 +46,7 @@
 #define L2            lstk[lsp-2]
 
 enum { INTERPRET=0, COMPILE=1, BYE=999 };
-typedef struct { ucell xt; byte sz; byte fl; byte ln; char nm[NAME_LEN+1]; } DE_T;
+typedef struct { ucell xt; byte sz; byte fl; byte ln; char nm[1]; } DE_T;
 typedef struct { char *name; ucell value; } NVP_T;
 
 // These are defined by qwc-vm.c
