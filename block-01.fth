@@ -30,11 +30,17 @@
 : bm-all ( -- ) 250 mil bm-while bb 30 bm-fib ;
 
 ( simple fixed point )
-: f. ( n-- )    1000 /mod (.) '.' emit abs 3 10 .nwb ;
-: f* ( a b--c ) * 1000 / ;
-: f/ ( a b--c ) swap 1000 * swap / ;
+val fprec@   (val) t1   \ Precision digits
+val fscale@  (val) t2   \ Scale value
+: fprec! ( n-- ) 1 max t1 ! 1 fprec@ for 10 * next t2 ! ;
+: f. ( n-- )    fscale@ /mod (.) '.' emit abs fprec@ 10 .nwb ;
+: f* ( a b--c ) * fscale@ / ;
+: f/ ( a b--c ) swap fscale@ * swap / ;
 : f+ ( a b--c ) + ; inline
 : f- ( a b--c ) - ; inline
+: i>f ( n--m ) fscale@ * ;
+: f>i ( n--m ) fscale@ / ;
+3 fprec!
 
 \ A example stack
 16 cells var tstk      \ the stack start
