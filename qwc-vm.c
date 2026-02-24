@@ -45,6 +45,8 @@
 	X(EQ,     "=",        t = pop(); TOS = (TOS == t) ? 1 : 0; ) \
 	X(GT,     ">",        t = pop(); TOS = (TOS  > t) ? 1 : 0; ) \
 	X(EQ0,    "0=",       TOS = (TOS == 0) ? 1 : 0; ) \
+	X(MIN,    "min",      t = pop(); TOS = (TOS < t) ? TOS : t; ) \
+	X(MAX,    "max",      t = pop(); TOS = (TOS > t) ? TOS : t; ) \
 	X(PLSTO,  "+!",       t = pop(); n = pop(); *(cell *)t += n; ) \
 	X(FOR,    "for",      lsp += 3; L0 = 0; L1 = pop(); L2 = pc; ) \
 	X(I,      "i",        push(L0); ) \

@@ -4,7 +4,7 @@ QWC is a minimal Forth system that can run stand-alone or be embedded into anoth
 
 QWC is implemented in 3 files: (qwc-vm.c, qwc-vm.h, system.c). <br/>
 The QWC VM is implemented in under 200 lines of code.<br/>
-QWC has 62 primitives.<br/>
+QWC has 64 primitives.<br/>
 The primitives are quite complete and any Forth system can be built from them.
 
 In a QWC program, each instruction is a CELL.
@@ -64,14 +64,14 @@ On startup, QWC does the following:
 |   0       | exit     | (--)         | PC = R-TOS. Discard R-TOS. If (PC=0) then stop. |
 |   1       | lit      | (--)         | Push code[PC]. Increment PC. |
 |   2       | jmp      | (--)         | PC = code[PC]. |
-|   3       | jmpz     | (n--)        | If (TOS==0) then PC = code[PC] else PC = PC+1. Discard TOS. |
-|   4       | jmpnz    | (n--)        | If (TOS!=0) then PC = code[PC] else PC = PC+1. Discard TOS. |
-|   5       | njmpz    | (n--n)       | If (TOS==0) then PC = code[PC] else PC = PC+1. |
-|   6       | njmpnz   | (n--n)       | If (TOS!=0) then PC = code[PC] else PC = PC+1. |
-|   7       | dup      | (n--n n)     | Push TOS. |
-|   8       | drop     | (n--)        | Discard TOS. |
-|   9       | swap     | (a b--b a)   | Swap TOS and NOS. |
-|  10       | over     | (a b--a b a) | Push NOS. |
+|   3       | jmpz     | (n--)        | If (`n`==0) then PC = code[PC] else PC = PC+1. |
+|   4       | jmpnz    | (n--)        | If (`n`!=0) then PC = code[PC] else PC = PC+1. |
+|   5       | njmpz    | (n--n)       | If (`n`==0) then PC = code[PC] else PC = PC+1. |
+|   6       | njmpnz   | (n--n)       | If (`n`!=0) then PC = code[PC] else PC = PC+1. |
+|   7       | dup      | (n--n n)     | Duplicate `n`. |
+|   8       | drop     | (n--)        | Discard `n`. |
+|   9       | swap     | (a b--b a)   | Swap `a` and `b`. |
+|  10       | over     | (a b--a b a) | Push `a`. |
 |  11       | !        | (n a--)      | CELL store `n` through `a`. |
 |  12       | @        | (a--n)       | CELL fetch `n` through `a`. |
 |  13       | c!       | (b a--)      | BYTE store `b` through `a`. |
@@ -90,39 +90,41 @@ On startup, QWC does the following:
 |  26       | x@+      | (--n)        | Push local variable X, then increment it. |
 |  27       | y@+      | (--n)        | Push local variable Y, then increment it. |
 |  28       | z@+      | (--n)        | Push local variable Z, then increment it. |
-|  29       | *        | (a b--c)     | TOS = NOS*TOS. Discard NOS. |
-|  30       | +        | (a b--c)     | TOS = NOS+TOS. Discard NOS. |
-|  31       | -        | (a b--c)     | TOS = NOS-TOS. Discard NOS. |
-|  32       | /mod     | (a b--r q)   | TOS = NOS/TOS. NOS = NOS modulo TOS. |
-|  33       | 1+       | (a--b)       | TOS = TOS+1. |
-|  34       | 1-       | (a--b)       | TOS = TOS-1. |
-|  35       | <        | (a b--f)     | If (NOS<TOS) then TOS = 1 else TOS = 0. Discard NOS. |
-|  36       | =        | (a b--f)     | If (NOS=TOS) then TOS = 1 else TOS = 0. Discard NOS. |
-|  37       | >        | (a b--f)     | If (NOS<TOS) then TOS = 1 else TOS = 0. Discard NOS. |
-|  38       | 0=       | (n--f)       | If (TOS==1) then TOS = 1 else TOS = 0. |
-|  39       | +!       | (n a--)      | Add `n` to the cell at `a`. |
-|  40       | for      | (C--)        | Start a FOR loop starting at 0. Upper limit is `C`. |
-|  41       | i        | (--I)        | Push current loop index `I`. |
-|  42       | next     | (--)         | Increment I. If I < C then jump to loop start. |
-|  43       | and      | (a b--c)     | `c` = `a` and `b`. |
-|  44       | or       | (a b--c)     | `c` = `a` or  `b`. |
-|  45       | xor      | (a b--c)     | `c` = `a` xor `b`. |
-|  46       | ztype    | (a--)        | Output null-terminated string `a`. |
-|  47       | find     | (--a)        | Push the dictionary address `a` of the next word. |
-|  48       | key      | (--n)        | Push the next keypress `n`. Wait if necessary. |
-|  49       | key?     | (--f)        | Push 1 if a keypress is available, else 0. |
-|  50       | emit     | (c--)        | Output char `c`. |
-|  51       | fopen    | (nm md--fh)  | Open file `nm` using mode `md` (fh=0 if error). |
-|  52       | fclose   | (fh--)       | Close file `fh`. Discard TOS. |
-|  53       | fread    | (a sz fh--n) | Read `sz` chars from file `fh` to `a`. |
-|  54       | fwrite   | (a sz fh--n) | Write `sz` chars to file `fh` from `a`. |
-|  55       | ms       | (n--)        | Wait/sleep for TOS milliseconds |
-|  56       | timer    | (--n)        | Push the current system time. |
-|  57       | add-word | (--)         | Add the next word to the dictionary. |
-|  58       | outer    | (a--)        | Run the outer interpreter on TOS. Discard TOS. |
-|  59       | cmove    | (f t n--)    | Copy `n` bytes from `f` to `t`. |
-|  60       | s-len    | (str--n)     | Determine the length `n` of string `str`. |
-|  61       | system   | (str--)      | Execute system(str). Discard TOS. |
+|  29       | *        | (a b--c)     | `c` = `a`*`b`. |
+|  30       | +        | (a b--c)     | `c` = `a`+`b`. |
+|  31       | -        | (a b--c)     | `c` = `a`-`b`. |
+|  32       | /mod     | (a b--r q)   | `q` = `a`/`b`. `r` = `a` modulo `b`. |
+|  33       | 1+       | (a--b)       | `b` = `a`+1. |
+|  34       | 1-       | (a--b)       | `b` = `a`-1. |
+|  35       | <        | (a b--f)     | If (`a`<`b`) then `f` = 1 else `f` = 0. |
+|  36       | =        | (a b--f)     | If (`a`=`b`) then `f` = 1 else `f` = 0. |
+|  37       | >        | (a b--f)     | If (`a`>`b`) then `f` = 1 else `f` = 0. |
+|  38       | 0=       | (n--f)       | If (`n`==0) then `f` = 1 else `f` = 0. |
+|  39       | min      | (a b--c)     | If (`a` < `b`) `c` = `a` else `b`. |
+|  40       | max      | (a b--c)     | If (`a` > `b`) `c` = `a` else `b`. |
+|  41       | +!       | (n a--)      | Add `n` to the cell at `a`. |
+|  42       | for      | (C--)        | Start a FOR loop starting at 0. Upper limit is `C`. |
+|  43       | i        | (--I)        | Push current loop index `I`. |
+|  44       | next     | (--)         | Increment I. If I < C then jump to loop start. |
+|  45       | and      | (a b--c)     | `c` = `a` and `b`. |
+|  46       | or       | (a b--c)     | `c` = `a` or  `b`. |
+|  47       | xor      | (a b--c)     | `c` = `a` xor `b`. |
+|  48       | ztype    | (a--)        | Output null-terminated string `a`. |
+|  49       | find     | (--a)        | Push the dictionary address `a` of the next word. |
+|  50       | key      | (--n)        | Push the next keypress `n`. Wait if necessary. |
+|  51       | key?     | (--f)        | Push 1 if a keypress is available, else 0. |
+|  52       | emit     | (c--)        | Output char `c`. |
+|  53       | fopen    | (nm md--fh)  | Open file `nm` using mode `md` (`fh`=0 if error). |
+|  54       | fclose   | (fh--)       | Close file `fh`. Discard TOS. |
+|  55       | fread    | (a sz fh--n) | Read `sz` chars from file `fh` to `a`. |
+|  56       | fwrite   | (a sz fh--n) | Write `sz` chars to file `fh` from `a`. |
+|  57       | ms       | (n--)        | Wait/sleep for `n` milliseconds |
+|  58       | timer    | (--n)        | Push the current system time `n`. |
+|  59       | add-word | (--)         | Add the next word to the dictionary. |
+|  60       | outer    | (str--)      | Run the outer interpreter on `str`. |
+|  61       | cmove    | (f t n--)    | Copy `n` bytes from `f` to `t`. |
+|  62       | s-len    | (str--n)     | Determine the length `n` of string `str`. |
+|  63       | system   | (str--)      | Execute system(`str`). |
 
 ## Other built-in words
 

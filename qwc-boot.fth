@@ -20,7 +20,7 @@
 : (jmpnz)  ( --n )  4 ; inline
 : (njmpz)  ( --n )  5 ; inline
 : (njmpnz) ( --n )  6 ; inline
-: (ztype)  ( --n ) 46 ; inline
+: (ztype)  ( --n ) 48 ; inline
 
 : if   (jmpz)   , here 0 , ; immediate
 : -if  (njmpz)  , here 0 , ; immediate
@@ -126,8 +126,6 @@ vars (vh) !
 : /   ( a b--q ) /mod nip  ;
 : mod ( a b--r ) /mod drop ;
 : */  ( n m q--n' ) >r * r> / ;
-: min ( a b-a|b ) over over > if swap then drop ;
-: max ( a b-a|b ) over over < if swap then drop ;
 : unloop  ( -- ) (lsp) @ 3 - 0 max (lsp) ! ;
 : execute ( xt-- ) ?dup if >r then ;
 : decimal  ( -- )  #10 base ! ;
