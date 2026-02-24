@@ -1,5 +1,7 @@
 # QWC: a very minimal Forth
 
+Version 20260222 (February 23 2026)
+
 QWC is a minimal Forth system that can run stand-alone or be embedded into another program.
 
 QWC is implemented in 3 files: (qwc-vm.c, qwc-vm.h, system.c). <br/>
@@ -7,7 +9,7 @@ The QWC VM is implemented in under 200 lines of code.<br/>
 QWC has 64 primitives.<br/>
 The primitives are quite complete and any Forth system can be built from them.
 
-In a QWC program, each instruction is a CELL.
+In a QWC program, each instruction is a single CELL.
 - By default, a CELL is a QWord, 64-bits, but it can also be 32-bits.
 - If <= the last primitive (system), then it is a primitive.
 - Else, if the top 3 bits are set, then it is a literal.
@@ -55,7 +57,7 @@ On startup, QWC does the following:
 - Else, try to load file '`BIN_DIR`qwc-boot.fth' in the "bin" folder.
 - On Linux, `BIN_DIR` is "/home/chris/bin/".
 - On Windows, `BIN_DIR` is "D:\\bin\\".
-- `BIN_DIR` is defined in qwc-vm.h. Change it as appropriate for your system.
+- `BIN_DIR` is defined in qwc-vm.h. Adjust it in `qwc-vm.h` for your system if needed.
 
 ## The VM Primitives
 
@@ -147,6 +149,63 @@ On startup, QWC does the following:
 | >in       | (--a) | Address of the text input buffer pointer. |
 | cell      | (--n) | The size of a CELL in bytes (4 or 8). |
 
+## VM Architecture Overview
+
+QWC uses a stack-based virtual machine with three main stacks:
+- **Data Stack**: For operands and results (pointers: `dsp`, `stk`).
+- **Return Stack**: For return addresses and loop indices (pointers: `rsp`, `rstk`).
+- **Loop Stack**: For FOR/NEXT loops (pointers: `lsp`, `lstk`).
+
+Memory is divided into:
+- **Code Area**: Starts at `mem[0]`, holds compiled code and dictionary.
+- **Dictionary**: Grows downward from `mem[MEM_SZ]`, storing word definitions.
+- **Variables**: User variables in the `vars` area.
+
+Instructions are CELL-sized (32/64-bit). Primitives (0-63) execute directly; literals use the top 3 bits set; others are XT calls.
+
+## Compilation and Execution Details
+
+- **STATE**: 0 (INTERPRET) executes words; 1 (COMPILE) adds them to the dictionary.
+- **Literals**: Small numbers (< LIT_BITS) use `LIT_MASK`; larger ones use `LIT` + value.
+- **Inlining**: Copies word definitions up to `EXIT` for macros.
+- **Tail-Call Optimization**: `EXIT` after a call becomes a `JMP`.
+- Execution starts with `inner(pc)`, dispatching via a switch on the opcode.
+
+## Build and Run Instructions
+
+- Compile: Run `make` (requires a C compiler, sets ARCH=64 by default).
+- Run REPL: `./qwc`
+- Load file: `./qwc filename.fth`
+- Clean: `make clean`
+
+## Forth Code Examples
+
+Define a word: `: square dup * ;` (squares TOS).  
+Loop: `10 for i . next` (prints 0 to 9).  
+ Conditional: `5 3 > if 42 . then` (prints 42 if true).
+
+## Internal Functions Summary
+
+| Function    | Description |
+|:--          |:-- |
+| `inner(pc)` | Executes code starting at `pc`, dispatching primitives/literals/calls. |
+| `outer(src)`| Parses and interprets/executes Forth source string. |
+| `addToDict(w)`| Adds word `w` to dictionary, returns entry pointer. |
+| `findInDict(w)`| Searches dictionary for word `w`, returns pointer or 0. |
+| `compileNum(n)`| Compiles number `n` as literal. |
+| `qwcInit()` | Initializes primitives and built-in words. |
+
+## qwc-boot.fth Role
+
+`qwc-boot.fth` is the bootstrap file loaded on startup, defining higher-level Forth words (e.g., `if`, `begin`, variables). It builds on primitives to create a usable language. Edit it to customize the system.
+
 ##   Embedding QWC in your C or C++ project
 
 See system.c. It embeds the QWC VM into a C program.
+
+Example usage:
+```c
+#include "qwc-vm.h"
+qwcInit();
+outer("your forth code here");
+```
