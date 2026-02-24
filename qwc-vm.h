@@ -2,7 +2,7 @@
 
 #ifndef __QWC_H__
 
-#define VERSION         20260222
+#define VERSION         20260223
 #ifdef _MSC_VER
     #define _CRT_SECURE_NO_WARNINGS
     #define IS_WINDOWS 1

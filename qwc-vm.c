@@ -45,6 +45,8 @@
 	X(EQ,     "=",        t = pop(); TOS = (TOS == t) ? 1 : 0; ) \
 	X(GT,     ">",        t = pop(); TOS = (TOS  > t) ? 1 : 0; ) \
 	X(EQ0,    "0=",       TOS = (TOS == 0) ? 1 : 0; ) \
+	X(MIN,    "min",      t = pop(); TOS = (TOS < t) ? TOS : t; ) \
+	X(MAX,    "max",      t = pop(); TOS = (TOS > t) ? TOS : t; ) \
 	X(PLSTO,  "+!",       t = pop(); n = pop(); *(cell *)t += n; ) \
 	X(FOR,    "for",      lsp += 3; L0 = 0; L1 = pop(); L2 = pc; ) \
 	X(I,      "i",        push(L0); ) \
@@ -94,6 +96,7 @@ char *checkWord(char *w) { return w ? w : (nextWord() ? &wd[0] : NULL); }
 void lit1(cell n) {	comma((ucell)(n | LIT_MASK)); }
 void lit2(cell n) {	comma(LIT); comma(n); }
 void compileNum(cell n) { btwi(n,0,LIT_BITS) ? lit1(n) : lit2(n); }
+void compileErr(char *w) { zType("\n-word:["); zType(w); zType("]?-\n"); }
 
 int nextWord() {
 	int ln = 0;
@@ -114,8 +117,7 @@ int isNum(const char *w, cell b) {
 	while (*w) {
 		char c = *w++; if (c >= 'A' && c <= 'Z') c += 32;
 		int val = btwi(c,'0','9') ? c-'0' : btwi(c,'a','f') ? c-'a'+10 : -1;
-		if (val < 0 || val >= b) return 0;
-		n = (n*b) + val;
+		if (btwi(val, 0, b-1)) { n=(n*b)+val; } else { return 0; }
 	}
 	push(isNeg ? -n : n);
 	return 1;
@@ -170,11 +172,7 @@ void outer(const char *src) {
 		if (strEqI(wd, ":"))  { state=COMPILE; addToDict(0); continue; }
 		if (isNum(wd, base))  { doNum(); continue; }
 		DE_T *dp = findInDict(wd);
-		if (!dp) {
-			zType("\n-word:["); zType(wd); zType("]?-\n");
-			state = INTERPRET;
-			break;
-		}
+		if (!dp) { compileErr(wd); state=INTERPRET; break; }
 		if ((state == INTERPRET) || (dp->fl & IMMED)) { doInterp(dp->xt); }
 		else { (dp->fl & INLINE) ? doInline(dp->xt) : comma(dp->xt); } // COMPILE
 	}
