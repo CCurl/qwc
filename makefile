@@ -11,6 +11,8 @@ clean:
 run: qwc
 	./qwc
 
-bin: qwc qwc-boot.fth
+bin: qwc
 	cp -u -p qwc ~/bin/
+
+boot: qwc-boot.fth
 	cp -u -p qwc-boot.fth ~/bin/
