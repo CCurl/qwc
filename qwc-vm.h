@@ -20,8 +20,8 @@
 #include <time.h>
 
 #if INTPTR_MAX > INT32_MAX
-    #define LIT_MASK      0x4000000000000000
-    #define LIT_BITS      0x3FFFFFFFFFFFFFFF
+    #define LIT_MASK      0x7FF8000000000000
+    #define LIT_BITS      0x0007FFFFFFFFFFFF
     #define CELL_SZ                8
     #define cell             int64_t
     #define ucell           uint64_t

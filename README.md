@@ -12,7 +12,7 @@ The primitives are quite complete and any Forth system can be built from them.
 In a QWC program, each instruction is a single CELL.
 - By default, a CELL is a QWord, 64-bits, but it can also be 32-bits.
 - If <= the last primitive (system), then it is a primitive.
-- Else, if the top 3 bits are set, then it is a literal.
+- Else, if it matches a quiet NaN pattern (64-bit only), then it is a literal.
 - Else, it is the XT (code address) of a word in the dictionary.
 
 ### QWC hard-codes the following IMMEDIATE state-change words:
@@ -161,12 +161,12 @@ Memory is divided into:
 - **Dictionary**: Grows downward from `mem[MEM_SZ]`, storing word definitions.
 - **Variables**: User variables in the `vars` area.
 
-Instructions are CELL-sized (32/64-bit). Primitives (0-63) execute directly; literals use the top 3 bits set; others are XT calls.
+Instructions are CELL-sized (32/64-bit). Primitives (0-63) execute directly; literals use NaN boxing (64-bit); others are XT calls.
 
 ## Compilation and Execution Details
 
 - **STATE**: 0 (INTERPRET) executes words; 1 (COMPILE) adds them to the dictionary.
-- **Literals**: Small numbers (< LIT_BITS) use `LIT_MASK`; larger ones use `LIT` + value.
+- **Literals**: Small numbers (fitting in 51-bit payload) use NaN boxing; larger ones use `LIT` + value.
 - **Inlining**: Copies word definitions up to `EXIT` for macros.
 - **Tail-Call Optimization**: `EXIT` after a call becomes a `JMP`.
 - Execution starts with `inner(pc)`, dispatching via a switch on the opcode.
