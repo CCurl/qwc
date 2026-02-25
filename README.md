@@ -1,6 +1,6 @@
 # QWC: a very minimal Forth
 
-Version 20260222 (February 23 2026)
+Version 2026.02.24
 
 QWC is a minimal Forth system that can run stand-alone or be embedded into another program.
 
