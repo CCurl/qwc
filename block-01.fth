@@ -38,8 +38,9 @@ val fscale@  (val) t2   \ Scale value
 : f/ ( a b--c ) swap fscale@ * swap / ;
 : f+ ( a b--c ) + ; inline
 : f- ( a b--c ) - ; inline
-: i>f ( n--m ) fscale@ * ;
-: f>i ( n--m ) fscale@ / ;
+: d>f ( n f-m ) swap fscale@ * + ;
+: i>f ( n--m )  0 d>f ;
+: f>i ( n--m )  fscale@ / ;
 3 fprec!
 
 \ A example stack
