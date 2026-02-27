@@ -7,19 +7,18 @@ This document provides detailed technical information about QWC's internal archi
 QWC manages a single 16MB memory block (`mem[MEM_SZ]`) divided into three regions:
 
 ```
- mem[0]              mem[64K CELLS]                    mem[MEM_SZ]
-+-------------------+---------------+---------------------------------+
-| Code & Compiled   | Variables     | Dictionary Entries (grows <-)   |
-|  (grows ->)       | (managed)     |   (toward lower addresses)      |
-+-------------------+---------------+---------------------------------+
- ^                   ^               ^
- primitives and      vars/(vh)       last (entry pointer)
- compiled code       (user vars)     (lower addresses)
-  (grows upward)
+ mem[0]             mem[64K CELLS]           mem[MEM_SZ]
++------------------+---------------+-------------------------+
+| Compiled code    |   Variables   |   Dictionary Entries    |
+| code (grows -->) |   (managed)   |          (<-- grows)    |
++------------------+---------------+-------------------------+
+ ^                  ^                                       ^
+ compiled code      vars/(vh)       last (dict entry pointer)
+ (grows upward)     (user vars)     (grows downward)
 ```
 
 **Key pointers:**
-- `code` (= `&mem[0]`): Start of code area; compiled instructions live here
+- `code` (= `&mem[0]`): Start of code area; compiled code lives here
 - `here`: Current code allocation position, initialized to `LASTOP+1` (after all primitives)
 - `last`: Dictionary entry pointer (grows toward lower addresses from `mem[MEM_SZ]`)
 - `vars`: User variable storage starting at 64k cells (64K * CELL_SZ bytes)
@@ -47,7 +46,7 @@ typedef struct {
 - `0x80` (IMMED): Word executes immediately, even during compilation
 - `0x40` (INLINE): Definition is copied (inlined) at call site, not called
 
-**Entry Size (`sz`):** 
+**Dictionary Entry Size (`sz`):** 
 - Includes struct overhead + name + padding
 - Used to traverse dictionary: `next_entry = current + sz`
 
@@ -55,7 +54,7 @@ typedef struct {
 ```forth
 : square dup * ;     ( 3 instructions: DUP, MULT, EXIT )
 ```
-Results in a DE_T at `mem[last]` with `xt` pointing to the compiled code at `here`.
+Results in a DE_T at `*last` with `xt` pointing to the compiled code at `here`.
 
 ## Literal Encoding
 
@@ -87,7 +86,7 @@ Stack effect notation in primitive tables and Forth code shows transformations:
 | `(n--n)`   | Non-destructive read | `njmpz` reads TOS, doesn't pop |
 | `(--)`     | No stack effect      | `nop` (if it existed) |
 
-**Macros used in code:**
+**Macros used in the C code:**
 - `TOS`: Top of stack (`dstk[dsp]`)
 - `NOS`: Next on stack (`dstk[dsp-1]`)
 - Operations like `t = pop(); TOS += t;` implement `(a b--c)` pattern
@@ -151,7 +150,8 @@ Create a new frame for local variables x, y, z:
     -L ;
 ```
 
-**Note:** `+L` allocates a frame on the transient stack (tstk) for x, y, z variables; `-L` deallocates.
+**Note:** `+L` allocates a frame on the transient stack (tstk) for x, y, z variables
+**Note:** `-L` deallocates the last allocated stack frame.
 
 ### Inlining vs Calling
 **Inline** (flag 0x40): Definition copied at compile time
@@ -166,7 +166,7 @@ Create a new frame for local variables x, y, z:
 : test complex complex ;   ( compiles: call complex, call complex )
 ```
 
-## Tail-Call Optimization
+## Tail-Call Optimization (TCO)
 
 When a word ends with a call to another word, QWC optimizes:
 
@@ -246,9 +246,9 @@ for (DE_T *dp = (DE_T *)last; dp < (DE_T *)&mem[MEM_SZ]; dp = (DE_T *)((byte*)dp
 
 **Invocation:** `3 double`
 
-1. **PARSE NUMBER:** `outer()` calls `nextWord()`, gets "3", calls `isNum()` which converts and pushes 3 to stack, returns 1
+1. **PARSE NUMBER:** `outer()` calls `nextWord()`, gets "3", calls `isNum()` which converts and pushes 3 to an integer and pushes it onto the stack, returns 1
 2. **PARSE WORD:** `nextWord()` gets "double", `findInDict()` returns its DE_T entry
-3. **EXECUTE:** STATE == INTERPRET, so `doInterp()` calls `inner()` with "double"'s XT
+3. **EXECUTE:** STATE == INTERPRET, so `doInterp()` calls `inner()` with the XT for "double"
 4. **CALL:** `inner()` jumps to double's XT (location of dup instruction)
 5. **DUP:** Duplicates TOS (3, 3)
 6. **ADD:** Pops top two entries, pushes sum (6)
