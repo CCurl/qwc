@@ -1,6 +1,6 @@
 ( these are created later as -last- and -here- )
 ( they are used later for rebooting )
-(h) @   (l) @ 
+(h) @   (l) @
 
 : last (l) @ ;
 : here (h) @ ;
@@ -98,7 +98,7 @@ vars (vh) !
     z" qwc-boot.fth" fopen-r -if0 drop ." qwc-boot.fth not found" exit then
     z! t5 x! t4 for 0 c!x+ next
     t5 t4 z@ fread drop z@ fclose
-    -here- (h) !  -last- (l) ! 
+    -here- (h) !  -last- (l) !
     t5 >in ! ;
 : vi z" vi qwc-boot.fth" system ;
 
@@ -112,6 +112,7 @@ vars (vh) !
 : 2dup  ( a b--a b a b ) over over ; inline
 : 2drop ( a b-- )        drop drop ; inline
 : -rot ( a b c--c a b )  swap >r swap r> ;
+: cell+ ( a--a' ) cell + ; inline
 : 0< ( n--f ) 0 <    ; inline
 : <= ( a b--f ) > 0= ;
 : >= ( a b--f ) < 0= ;
@@ -149,27 +150,31 @@ cell var (buf)
 : 0sp 0 (sp) ! ;
 : depth ( --n ) (sp) @ 1- ;
 : .s '(' emit space depth ?dup if
-        stk swap for cell + dup @ . next drop
+        stk swap for cell+ dup @ . next drop
     then ')' emit ;
 
-: .word ( de-- ) cell + 3 + ztype ;
+: .word ( de-- ) cell+ 3 + ztype ;
 : words ( -- ) +L last x! 0 y! 1 z! begin
         x@ dict-end < if0 '(' emit z@ . ." words)" -L exit then
         x@ .word tab z++
-        x@ cell + 2 + c@ 7 > if y++ then 
+        x@ cell+ 2 + c@ 7 > if y++ then
         y@+ 12 > if cr 0 y! then
-        x@ dup cell + c@ + x!
+        x@ dup cell+ c@ + x!
     again ;
 
 : words-n ( n-- ) +L last x! 0 y! for
         x@ .word tab
         y@+ 12 > if cr 0 y! then
-		x@ dup cell + c@ + x!
+		x@ dup cell+ c@ + x!
     next -L ;
 
 cell var t4   cell var t5
 : [[ here t4 !  vhere t5 !  1 state ! ;
 : ]] (exit) , 0 state ! t4 @ dup >r (h) ! t5 @ (vh) ! ; immediate
+
+cell var t4   cell var t5   cell var t6
+: marker ( -- ) here t4 !   vhere t5 !   last t6 ! ;
+: forget ( -- ) t4 @ (h) !  t5 @ (vh) !  t6 @ (l) ! ;
 
 ( Strings / Memory )
 : pad    ( --a ) vhere $100 + ;
@@ -181,7 +186,8 @@ cell var t4   cell var t5
 : s-catn ( dst num--dst ) <# #s #> s-cat ;
 : s-eqn  ( s1 s2 n--f ) +L3 z@ for c@x+ c@y+ = if0 -L 0 unloop exit then next -L 1 ;
 : s-eq   ( s1 s2--f ) dup s-len 1+ s-eqn ;
-  
+: s-scat ( src dst--dst ) swap s-cat ;
+
 ( Disk: 64 blocks, 16KB bytes each )
 : kb ( n--m ) 1024 * ;
 : mb ( n--m ) kb kb ;
@@ -203,7 +209,8 @@ val blk@   (val) t0
 : load-next ( n-- )   blk! blk-read blk-nullt blk-addr >in ! ;
 
 : fn-blk ( n-- )  blk@ >r  blk! blk-fn  r> blk! ;
-: ed ( n-- ) pad z" vi " s-cpy swap fn-blk s-cat system ;
+: ed ( n-- ) fn-blk pad z" vi " s-cpy s-scat system ;
 
+marker
 ( *** App code - starts in block-001 *** )
 1 load
